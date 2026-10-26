@@ -10,6 +10,7 @@ import {
   IconFilePlus,
   IconFolderPlus,
   IconCopy,
+  IconGitBranch,
   IconClipboard,
   IconPlayerPlay,
   IconEdit,
@@ -44,6 +45,7 @@ import { isTabForItemActive } from 'src/selectors/tab';
 import RenameCollection from '../RenameCollection';
 import StyledWrapper from './StyledWrapper';
 import CloneCollection from '../CloneCollection';
+import SwitchGitBranch from '../SwitchGitBranch';
 import InvalidFilesBadge from '../InvalidFilesBadge';
 import ShareCollection from 'components/ShareCollection/index';
 import GenerateDocumentation from '../GenerateDocumentation';
@@ -68,6 +70,7 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
   const [showNewAppModal, setShowNewAppModal] = useState(false);
   const [showRenameCollectionModal, setShowRenameCollectionModal] = useState(false);
   const [showCloneCollectionModalOpen, setShowCloneCollectionModalOpen] = useState(false);
+  const [showSwitchGitBranchModal, setShowSwitchGitBranchModal] = useState(false);
   const [showShareCollectionModal, setShowShareCollectionModal] = useState(false);
   const [showGenerateDocumentationModal, setShowGenerateDocumentationModal] = useState(false);
   const [showRemoveCollectionModal, setShowRemoveCollectionModal] = useState(false);
@@ -432,6 +435,15 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
       }
     },
     {
+      id: 'switch-branch',
+      leftSection: IconGitBranch,
+      label: 'Switch Branch',
+      testId: 'switch-git-branch',
+      onClick: () => {
+        setShowSwitchGitBranchModal(true);
+      }
+    },
+    {
       id: 'sync-openapi',
       leftSection: OpenAPISyncIcon,
       label: 'OpenAPI',
@@ -562,6 +574,9 @@ const CollectionRow = ({ collection, searchText, openBulkMenu, children, isColle
       )}
       {showGenerateDocumentationModal && (
         <GenerateDocumentation collectionUid={collection.uid} onClose={() => setShowGenerateDocumentationModal(false)} />
+      )}
+      {showSwitchGitBranchModal && (
+        <SwitchGitBranch collection={collection} onClose={() => setShowSwitchGitBranchModal(false)} />
       )}
       {showCloneCollectionModalOpen && (
         <CloneCollection collectionUid={collection.uid} onClose={() => setShowCloneCollectionModalOpen(false)} />

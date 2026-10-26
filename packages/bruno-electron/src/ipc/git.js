@@ -1,5 +1,13 @@
 const { ipcMain } = require('electron');
-const { cloneGitRepository, getCollectionGitRepoUrl, listBranchesForRemoteUrl } = require('../utils/git');
+const {
+  cloneGitRepository,
+  getCollectionGitRepoUrl,
+  listBranchesForRemoteUrl,
+  getCollectionGitRootPath,
+  getCollectionGitBranches,
+  getCurrentGitBranch,
+  checkoutGitBranch
+} = require('../utils/git');
 const { createDirectory, removeDirectory } = require('../utils/filesystem');
 
 const getCollectionGitRemoteUrl = async (collectionPath) => {
@@ -24,6 +32,34 @@ const handleListRemoteBranches = async (event, { url }) => {
   return listBranchesForRemoteUrl({ url: repositoryUrl });
 };
 
+const handleGetCollectionGitBranches = async (event, collectionPath) => {
+  const gitRootPath = getCollectionGitRootPath(collectionPath);
+  if (!gitRootPath) {
+    return null;
+  }
+
+  const [current, branches] = await Promise.all([
+    getCurrentGitBranch(gitRootPath),
+    getCollectionGitBranches(gitRootPath)
+  ]);
+  return { current, branches };
+};
+
+const handleCheckoutCollectionGitBranch = async (mainWindow, { collectionPath, branchName, processUid }) => {
+  const gitRootPath = getCollectionGitRootPath(collectionPath);
+  if (!gitRootPath) {
+    throw new Error('Collection is not inside a git repository');
+  }
+
+  // only switch to existing local branches; this also keeps option-like names away from git
+  const branches = await getCollectionGitBranches(gitRootPath);
+  if (!branches.includes(branchName)) {
+    throw new Error(`Branch "${branchName}" does not exist`);
+  }
+
+  await checkoutGitBranch(mainWindow, { gitRootPath, branchName, processUid });
+};
+
 const registerGitIpc = (mainWindow) => {
   ipcMain.handle('renderer:clone-git-repository', async (event, { url, path, processUid, branch }) => {
     let directoryCreated = false;
@@ -45,8 +81,16 @@ const registerGitIpc = (mainWindow) => {
   );
 
   ipcMain.handle('renderer:list-remote-branches-for-url', handleListRemoteBranches);
+
+  ipcMain.handle('renderer:get-collection-git-branches', handleGetCollectionGitBranches);
+
+  ipcMain.handle('renderer:checkout-collection-git-branch', (event, data) =>
+    handleCheckoutCollectionGitBranch(mainWindow, data)
+  );
 };
 
 module.exports = registerGitIpc;
 module.exports.getCollectionGitRemoteUrl = getCollectionGitRemoteUrl;
 module.exports.handleListRemoteBranches = handleListRemoteBranches;
+module.exports.handleGetCollectionGitBranches = handleGetCollectionGitBranches;
+module.exports.handleCheckoutCollectionGitBranch = handleCheckoutCollectionGitBranch;

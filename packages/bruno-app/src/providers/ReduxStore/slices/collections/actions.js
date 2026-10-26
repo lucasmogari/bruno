@@ -3608,6 +3608,16 @@ export const fetchBranchesForRepositoryUrl = (url) => (dispatch, getState) => {
   return ipcRenderer.invoke('renderer:list-remote-branches-for-url', { url });
 };
 
+export const fetchCollectionGitBranches = (collectionPath) => () => {
+  const { ipcRenderer } = window;
+  return ipcRenderer.invoke('renderer:get-collection-git-branches', collectionPath);
+};
+
+export const checkoutCollectionGitBranch = (data) => () => {
+  const { ipcRenderer } = window;
+  return ipcRenderer.invoke('renderer:checkout-collection-git-branch', data);
+};
+
 export const scanForBrunoFiles = (dir) => (dispatch, getState) => {
   const { ipcRenderer } = window;
   return new Promise((resolve, reject) => {
